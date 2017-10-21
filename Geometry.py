@@ -12,13 +12,12 @@ class Task:
         if (obj1.name == 'Point') & (obj2.name == 'Point'):
             self.type = 'p2p'
             self.text = "Join two points with a line ({} and {})".format(id(obj1), id(obj2))
-            self.doable = GeometricCollection.connect_points()
+            self.doable = True
 
         if (obj1.name == 'Line') & (obj2.name == 'Line'):
             self.type = 'lx'
             self.text = "Find point of intersection ({} and {})".format(id(obj1), id(obj2))
             self.doable = True
-
 
 
 class GeometricCollection:
@@ -28,16 +27,19 @@ class GeometricCollection:
         """Initializes the data."""
         self.population = []
         self.tasks = []
+        self.data = []
 
         print("(Initializing GC = {})".format(id(self)))
 
     def point(self, x, y):
         p = Point(x, y)
         self.add_obj(p)
+        return p
 
     def line(self, x, y, theta):
-        p = Line(x, y, theta)
-        self.add_obj(p)
+        l = Line(x, y, theta)
+        self.add_obj(l)
+        return l
 
     def add_obj(self, new_obj):
         for obj in self.population:
@@ -63,6 +65,16 @@ class GeometricCollection:
         for task in now_tasks:
             p = task.obj1
             q = task.obj2
+            dy = p.y-q.y
+            dx = p.x-q.x
+            self.line(p.x, p.y, np.arctan2(dy, dx))
+            self.data.append(np.sqrt(dx**2 + dy**2))
+
+    def intersect_lines(self):
+        now_tasks = self.get_tasks('lx')
+        for task in now_tasks:
+            p = task.obj1
+            q = task.obj2
             self.line(p.x, p.y, np.arctan2(p.y-q.y, p.x-q.x))
 
     def what_tasks(self):
@@ -70,6 +82,10 @@ class GeometricCollection:
         print("We have the following {:d} tasks outstanding:\n".format(len(self.tasks)))
         for task in self.tasks:
             print("{}\n".format(task.text))
+
+    def show_data(self):
+        """Prints the current population."""
+        print("{}\n".format(self.data))
 
 
 class Geometric:
@@ -106,3 +122,4 @@ triangle.point(1.0, 1.0)
 triangle.connect_points()
 triangle.connect_points()
 triangle.what_tasks()
+triangle.show_data()
