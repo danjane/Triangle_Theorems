@@ -12,7 +12,7 @@ class Task:
         if (obj1.name == 'Point') & (obj2.name == 'Point'):
             self.type = 'p2p'
             self.text = "Join two points with a line ({} and {})".format(id(obj1), id(obj2))
-            self.doable = True
+            self.doable = GeometricCollection.connect_points()
 
         if (obj1.name == 'Line') & (obj2.name == 'Line'):
             self.type = 'lx'
