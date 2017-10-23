@@ -10,14 +10,19 @@ class Task:
         self.obj2 = obj2
         self.doable = False
 
-        if (obj1.name == 'Point') & (obj2.name == 'Point'):
+        if (obj1.name == 'Point') and (obj2.name == 'Point'):
             self.type = 'p2p'
             self.text = "Join two points with a line ({} and {})".format(id(obj1), id(obj2))
             self.doable = True
 
-        if (obj1.name == 'Line') & (obj2.name == 'Line'):
+        if (obj1.name == 'Line') and (obj2.name == 'Line'):
             self.type = 'lx'
             self.text = "Find point of intersection ({} and {})".format(id(obj1), id(obj2))
+            self.doable = True
+
+        if (obj1.name == 'Point') and (obj2.name == 'Angle') and (obj2.point == obj1):
+            self.type = 'tri'
+            self.text = "At point, find trisector ({} and {})".format(id(obj1), id(obj2))
             self.doable = True
 
 
@@ -45,6 +50,13 @@ class GeometricCollection:
     def angle(self, *arg, **kw):
         x = Angle(*arg, **kw)
         self.add_obj(x)
+        self.data.append(np.rad2deg(x.theta))
+
+        # Also add complement angle
+        x = Angle(x.theta + x.alpha - np.pi, x.alpha, x.point) #hmmm... clearly needs a think
+        self.add_obj(x)
+        self.data.append(x.theta)
+
         return x
 
     def add_obj(self, new_obj):
@@ -107,9 +119,16 @@ class GeometricCollection:
                 p = self.point(x, y, [l1, l2])
 
             # Now create an angle from this intersection
-            a = self.angle(l1.theta, l2.theta, p)
-            self.data.append(a.theta)
+            self.angle(l1.theta, l2.theta, p)
 
+    def trisect_angles(self):
+        now_tasks = self.get_tasks('tri')
+        for task in now_tasks:
+            p = task.obj1
+            angle = task.obj2
+
+            self.line(p.x, p.y, angle.alpha + angle.theta/3., [p])
+            self.line(p.x, p.y, angle.alpha + angle.theta*2./3., [p])
 
     def what_tasks(self):
         """Prints the current population."""
@@ -126,12 +145,14 @@ class GeometricCollection:
         for obj in reversed(self.population):
             obj.plot()
 
-        #pylab.xlim(-2.0, 2.0)
         #pylab.title('Probability distribution of anharmonic oscillator with beta=' + str(beta))
         #pylab.xlabel('position')
         #pylab.ylabel('probability')
         #pylab.legend(['matrix squaring', 'path sampled'])
+        pylab.xlim(-1., 2.)
+        pylab.ylim(-1., 2.)
         pylab.show()
+        pylab.axis('scaled')
 
 
 class Geometric:
@@ -209,6 +230,10 @@ triangle.point(1., 0.1)
 triangle.point(1.1, 1.)
 triangle.connect_points()
 triangle.intersect_lines()
-#triangle.what_tasks()
+triangle.trisect_angles()
+triangle.intersect_lines()
+triangle.connect_points()
+# triangle.what_tasks()
 triangle.show_data()
-triangle.plot_constructions()
+print min([abs(i-60) for i in triangle.data])
+#triangle.plot_constructions()
