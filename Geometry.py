@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Task:
     """A geometric construction."""
 
@@ -31,15 +32,20 @@ class GeometricCollection:
 
         print("(Initializing GC = {})".format(id(self)))
 
-    def point(self, x, y):
-        p = Point(x, y)
-        self.add_obj(p)
-        return p
+    def point(self, *arg, **kw):
+        x = Point(*arg, **kw)
+        self.add_obj(x)
+        return x
 
-    def line(self, x, y, theta):
-        l = Line(x, y, theta)
-        self.add_obj(l)
-        return l
+    def line(self, *arg, **kw):
+        x = Line(*arg, **kw)
+        self.add_obj(x)
+        return x
+
+    def angle(self, *arg, **kw):
+        x = Angle(*arg, **kw)
+        self.add_obj(x)
+        return x
 
     def add_obj(self, new_obj):
         for obj in self.population:
@@ -67,15 +73,40 @@ class GeometricCollection:
             q = task.obj2
             dy = p.y-q.y
             dx = p.x-q.x
-            self.line(p.x, p.y, np.arctan2(dy, dx))
+
+            self.line(p.x, p.y, np.arctan2(dy, dx), [p, q])
+
             self.data.append(np.sqrt(dx**2 + dy**2))
 
     def intersect_lines(self):
         now_tasks = self.get_tasks('lx')
         for task in now_tasks:
-            p = task.obj1
-            q = task.obj2
-            self.line(p.x, p.y, np.arctan2(p.y-q.y, p.x-q.x))
+            l1 = task.obj1
+            l2 = task.obj2
+
+            p = set(l1.points).intersection(l2.points)
+
+            if p:
+                p = p.pop()
+
+            else:
+
+                # Check for parallel lines?
+                if l1.theta == l2.theta:
+                    if l1.theta == np.arctan2(l1.y-l2.y, l1.x-l2.x):
+                        print("Lines are equal!! ({} and {})".format(id(l1), id(l2)))
+                    else:
+                        print("Lines are parallel!! ({} and {})".format(id(l1), id(l2)))
+
+                c1 = np.tan(l1.theta)
+                c2 = np.tan(l2.theta)
+
+                x = (l2.y - l1.y - c2 * l2.x + c1 * l1.x) / (c1 - c2)
+                y = (c1*l2.y - c2*l1.y - c1*c2 * l2.x + c1*c2 * l1.x) / (c1 - c2)
+
+                p = self.point(x, y, [l1, l2])
+
+
 
     def what_tasks(self):
         """Prints the current population."""
@@ -100,26 +131,43 @@ class Geometric:
 class Point(Geometric):
     """Represents a point (x,y)."""
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, lines=None):
         Geometric.__init__(self, 'Point')
         self.x = x
         self.y = y
+        if lines is None:
+            lines = []
+        self.lines = lines
+        print("Point x:{}, y:{}:".format(x, y))
 
 
 class Line(Geometric):
     """Represents a line through (x,y) at angle theta."""
 
-    def __init__(self, x, y, theta):
+    def __init__(self, x, y, theta, points=None):
         Geometric.__init__(self, 'Line')
         self.x = x
         self.y = y
         self.theta = theta
+        if points is None:
+            points = []
+        self.points = points
+
+
+class Angle(Geometric):
+    """Represents an angle theta (inclined at angle alpha) at a point."""
+
+    def __init__(self, theta, alpha, point):
+        Geometric.__init__(self, 'Line')
+        self.theta = theta
+        self.alpha = alpha
+        self.point = point
 
 triangle = GeometricCollection()
-triangle.point(0.0, 0.0)
-triangle.point(1.0, 0.0)
-triangle.point(1.0, 1.0)
+triangle.point(0., 0.)
+triangle.point(1., 0.1)
+triangle.point(1.1, 1.)
 triangle.connect_points()
-triangle.connect_points()
-triangle.what_tasks()
+triangle.intersect_lines()
+#triangle.what_tasks()
 triangle.show_data()
