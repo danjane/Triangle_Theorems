@@ -1,5 +1,5 @@
 import numpy as np
-
+import pylab
 
 class Task:
     """A geometric construction."""
@@ -106,6 +106,8 @@ class GeometricCollection:
 
                 p = self.point(x, y, [l1, l2])
 
+            # Now create an angle from this intersection
+            self.angle(l1.theta, l2.theta, p)
 
 
     def what_tasks(self):
@@ -118,6 +120,18 @@ class GeometricCollection:
         """Prints the current population."""
         print("{}\n".format(self.data))
 
+    def plot_constructions(self):
+
+        for obj in reversed(self.population):
+            obj.plot()
+
+        #pylab.xlim(-2.0, 2.0)
+        #pylab.title('Probability distribution of anharmonic oscillator with beta=' + str(beta))
+        #pylab.xlabel('position')
+        #pylab.ylabel('probability')
+        #pylab.legend(['matrix squaring', 'path sampled'])
+        pylab.show()
+
 
 class Geometric:
     """Represents an abstract geometric notion, with a name."""
@@ -126,6 +140,9 @@ class Geometric:
         """Initializes the data."""
         self.name = name
         print("(Initializing {})".format(self.name))
+
+    def plot(self):
+            pass
 
 
 class Point(Geometric):
@@ -140,6 +157,9 @@ class Point(Geometric):
         self.lines = lines
         print("Point x:{}, y:{}:".format(x, y))
 
+    def plot(self):
+        pylab.plot(self.x, self.y, 'ro')
+
 
 class Line(Geometric):
     """Represents a line through (x,y) at angle theta."""
@@ -153,15 +173,29 @@ class Line(Geometric):
             points = []
         self.points = points
 
+    def plot(self):
+        pylab.plot(
+            [self.x + edge * np.cos(self.theta) for edge in [-2, 2]],
+            [self.y + edge * np.sin(self.theta) for edge in [-2, 2]],
+            linewidth=1, color='g')
+
 
 class Angle(Geometric):
     """Represents an angle theta (inclined at angle alpha) at a point."""
 
     def __init__(self, theta, alpha, point):
-        Geometric.__init__(self, 'Line')
+        Geometric.__init__(self, 'Angle')
         self.theta = theta
         self.alpha = alpha
         self.point = point
+
+    def plot(self):
+        p = self.point
+        xs = [self.alpha + (self.theta-self.alpha)*x/99. for x in range(100)]
+        pylab.plot(
+            [p.x + 0.1 * np.cos(x) for x in xs],
+            [p.y + 0.1 * np.sin(x) for x in xs],
+            linewidth=.5, color='c')
 
 triangle = GeometricCollection()
 triangle.point(0., 0.)
@@ -171,3 +205,4 @@ triangle.connect_points()
 triangle.intersect_lines()
 #triangle.what_tasks()
 triangle.show_data()
+triangle.plot_constructions()
