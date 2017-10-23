@@ -107,7 +107,8 @@ class GeometricCollection:
                 p = self.point(x, y, [l1, l2])
 
             # Now create an angle from this intersection
-            self.angle(l1.theta, l2.theta, p)
+            a = self.angle(l1.theta, l2.theta, p)
+            self.data.append(a.theta)
 
 
     def what_tasks(self):
@@ -183,15 +184,20 @@ class Line(Geometric):
 class Angle(Geometric):
     """Represents an angle theta (inclined at angle alpha) at a point."""
 
-    def __init__(self, theta, alpha, point):
+    def __init__(self, angle1, angle2, point):
         Geometric.__init__(self, 'Angle')
+
+        # TODO want the angle to point into the triangle if possible
+        theta = angle1-angle2
+        alpha = angle2
+
         self.theta = theta
         self.alpha = alpha
         self.point = point
 
     def plot(self):
         p = self.point
-        xs = [self.alpha + (self.theta-self.alpha)*x/99. for x in range(100)]
+        xs = [self.alpha + self.theta*x/99. for x in range(100)]
         pylab.plot(
             [p.x + 0.1 * np.cos(x) for x in xs],
             [p.y + 0.1 * np.sin(x) for x in xs],
