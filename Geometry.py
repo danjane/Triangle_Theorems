@@ -4,7 +4,7 @@ import pylab
 MAX_OBJECTS = 999
 
 
-class GeometricCollection:
+class GeometricCollection(object):
     """Represents a collection of geometric objects."""
 
     def __init__(self):
@@ -12,7 +12,7 @@ class GeometricCollection:
         self.population = 0
         self.objects = []
         self.data = {}
-        self.tasks = set()  # potential parents
+        self.tasks = []  # potential parents
         self.tasks_done = []
 
     def point(self, *arg, **kw):
@@ -28,7 +28,7 @@ class GeometricCollection:
     def angle(self, *arg, **kw):
         x = Angle(*arg, **kw)
         x = self.add_obj(x)
-        self.tasks.add((x.number,))
+        self.tasks.append((x.number,))
         # self.data[x.number] = np.rad2deg(x.theta)
         # Also add complement angle
         # x = Angle(x.theta + x.alpha - np.pi, x.alpha, x.point) #hmmm... clearly needs a think
@@ -44,9 +44,9 @@ class GeometricCollection:
         if len(self.objects) < MAX_OBJECTS:
             for old_num in range(new_num):
                 if ((old_num - new_num) % 3) == 2:
-                    self.tasks.add((new_num, old_num))
+                    self.tasks.append((new_num, old_num))
                 else:
-                    self.tasks.add((old_num, new_num))
+                    self.tasks.append((old_num, new_num))
 
         self.objects.append(new_obj)
         self.population += 1
@@ -97,8 +97,8 @@ class GeometricCollection:
                   angle.x, angle.y, angle.alpha + angle.theta/2., [self.objects[angle.point]])
 
     def do_all_tasks(self):
-        current_tasks = set(self.tasks)
-        self.tasks = set()
+        current_tasks = self.tasks
+        self.tasks = []
         for task in current_tasks:
             if len(self.objects) > MAX_OBJECTS:
                 break
@@ -172,7 +172,7 @@ class GeometricCollection:
         pylab.axis('scaled')
 
 
-class Geometric:
+class Geometric(object):
     """Represents an abstract geometric notion, with a name."""
 
     def __init__(self, name):
@@ -263,6 +263,6 @@ for k, v in triangle.data.iteritems():
         min_key = k
 
 print "\nClosest points at a distance of {:g}".format(min_dist)
-print "Occurs for {}".format(min_key)
+print "Occurs for construction {}".format(min_key)
 
 # triangle.plot_constructions()
