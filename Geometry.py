@@ -210,7 +210,7 @@ class Line(Geometric):
         Geometric.__init__(self, name)
         self.x = x
         self.y = y
-        self.theta = theta
+        self.theta = theta % (2*np.pi)
         if points is None:
             points = []
         self.parents = [p.number for p in points]
