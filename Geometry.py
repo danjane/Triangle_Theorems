@@ -4,6 +4,53 @@ import pylab
 MAX_OBJECTS = 999
 
 
+def connect_points((p, q)):
+    dy = p.y - q.y
+    dx = p.x - q.x
+    l = Line((connect_points, (p.name, q.name)), p.x, p.y, np.arctan2(dy, dx), set([p, q]))
+    p.lines.append(l)
+    q.lines.append(l)
+    return l, np.sqrt(dx**2 + dy**2)
+
+
+def intersect_lines((l1, l2)):
+    p = l1.points.intersection(l2.points)
+
+    if p:
+        return 0, 0
+
+    else:
+
+        # Check for parallel lines?
+        if ((l1.theta - l2.theta) % (2 * np.pi)) == 0:
+            if l1.theta == np.arctan2(l1.y - l2.y, l1.x - l2.x):
+                print("Lines are equal!! ({} and {})".format(id(l1), id(l2)))
+            else:
+                print("Lines are parallel!! ({} and {})".format(id(l1), id(l2)))
+
+        c1 = np.cos(l1.theta)
+        c2 = np.cos(l2.theta)
+        s1 = np.sin(l1.theta)
+        s2 = np.sin(l2.theta)
+
+        x = (c1 * c2 * (l2.y - l1.y) - c1 * s2 * l2.x + s1 * c2 * l1.x) / (s1 * c2 - s2 * c1)
+        y = (s1 * c2 * l2.y - s2 * c1 * l1.y - s1 * s2 * l2.x + s1 * s2 * l1.x) / (s1 * c2 - s2 * c1)
+
+        p = Point((intersect_lines, (l1.name, l2.name)), x, y, [l1, l2])
+
+        l1.points.add(p)
+        l2.points.add(p)
+
+        return p, 0
+
+
+def angle_from_two_lines((l1, l2)):
+    p = l1.points.intersection(l2.points)
+    p = p.pop()
+    a = Angle((angle_from_two_lines, (l1.name, l2.name)), l1, l2, p)
+    return a, a.theta
+
+
 class GeometricCollection(object):
     """Represents a collection of geometric objects."""
 
@@ -28,7 +75,6 @@ class GeometricCollection(object):
     def angle(self, *arg, **kw):
         x = Angle(*arg, **kw)
         x = self.add_obj(x)
-        self.tasks.append((x.number,))
         # self.data[x.number] = np.rad2deg(x.theta)
         # Also add complement angle
         # x = Angle(x.theta + x.alpha - np.pi, x.alpha, x.point) #hmmm... clearly needs a think
@@ -42,6 +88,7 @@ class GeometricCollection(object):
 
         # This new object can have new kids!
         if len(self.objects) < MAX_OBJECTS:
+            self.tasks.append((new_num,))
             for old_num in range(new_num):
                 if ((old_num - new_num) % 3) == 2:
                     self.tasks.append((new_num, old_num))
@@ -52,40 +99,18 @@ class GeometricCollection(object):
         self.population += 1
         return new_obj
 
-    def connect_points(self, p, q):
-        dy = p.y-q.y
-        dx = p.x-q.x
-        l = self.line((p.name, q.name), p.x, p.y, np.arctan2(dy, dx), [p, q])
-        self.data[l.name] = np.sqrt(dx**2 + dy**2)
+    def two_points(self, p, q):
+        l, distance = connect_points((p, q))
+        self.add_obj(l)
+        self.data[l.name] = distance
 
-    def intersect_lines(self, l1, l2):
-        p = set(l1.parents).intersection(l2.parents)
-
+    def two_lines(self, l1, l2):
+        p, distance = intersect_lines((l1, l2))
         if p:
-            p = p.pop()
-            p = self.objects[p]
-
-        else:
-
-            # Check for parallel lines?
-            if ((l1.theta - l2.theta) % (2*np.pi)) == 0:
-                if l1.theta == np.arctan2(l1.y - l2.y, l1.x - l2.x):
-                    print("Lines are equal!! ({} and {})".format(id(l1), id(l2)))
-                else:
-                    print("Lines are parallel!! ({} and {})".format(id(l1), id(l2)))
-
-            c1 = np.cos(l1.theta)
-            c2 = np.cos(l2.theta)
-            s1 = np.sin(l1.theta)
-            s2 = np.sin(l2.theta)
-
-            x = (c1*c2 * (l2.y - l1.y) - c1*s2 * l2.x + s1*c2 * l1.x) / (s1*c2 - s2*c1)
-            y = (s1*c2 * l2.y - s2*c1 * l1.y - s1 * s2 * l2.x + s1 * s2 * l1.x) / (s1*c2 - s2*c1)
-
-            p = self.point((l1.name, l2.name), x, y, [l1, l2])
-
-        # Now create an angle from this intersection
-        self.angle((l1.name, l2.name), l1, l2, p)
+            self.add_obj(p)
+        a, angle = angle_from_two_lines((l1, l2))
+        self.add_obj(a)
+        self.data[a.name] = angle
 
     def trisect_angle(self, angle):
         p = angle.point
@@ -94,7 +119,7 @@ class GeometricCollection(object):
 
     def bisect_angle(self, angle):
         self.line((angle.name,),
-                  angle.x, angle.y, angle.alpha + angle.theta/2., [self.objects[angle.point]])
+                  angle.x, angle.y, angle.alpha + angle.theta/2., set([self.objects[angle.point]]))
 
     def do_all_tasks(self):
         current_tasks = self.tasks
@@ -105,6 +130,8 @@ class GeometricCollection(object):
             task = self.do_task(task)
             if task is not None:
                 self.tasks_done.append(task)
+
+        print "There are {:d} tasks outstanding".format(len(self.tasks))
 
     def do_task(self, parents):
         if len(parents) == 1:
@@ -120,10 +147,10 @@ class GeometricCollection(object):
         obj2 = self.objects[parents[1]]
         task = None
         if isinstance(obj1, Point) and isinstance(obj2, Point):
-            self.connect_points(obj1, obj2)
+            self.two_points(obj1, obj2)
             task = (obj1.name, obj2.name)
         elif isinstance(obj1, Line) and isinstance(obj2, Line):
-            self.intersect_lines(obj1, obj2)
+            self.two_lines(obj1, obj2)
             task = (obj1.name, obj2.name)
         return task
 
@@ -196,7 +223,7 @@ class Point(Geometric):
         if lines is None:
             lines = []
         # TODO remove pointers
-        self.parents = [l.number for l in lines]
+        self.lines = [l.number for l in lines]
         print("Point x:{}, y:{}:".format(x, y))
 
     def plot(self):
@@ -206,14 +233,12 @@ class Point(Geometric):
 class Line(Geometric):
     """Represents a line through (x,y) at angle theta."""
 
-    def __init__(self, name, x, y, theta, points=None):
+    def __init__(self, name, x, y, theta, points=set()):
         Geometric.__init__(self, name)
         self.x = x
         self.y = y
         self.theta = theta % (2*np.pi)
-        if points is None:
-            points = []
-        self.parents = [p.number for p in points]
+        self.points = points
 
     def plot(self):
         pylab.plot(
@@ -264,5 +289,8 @@ for k, v in triangle.data.iteritems():
 
 print "\nClosest points at a distance of {:g}".format(min_dist)
 print "Occurs for construction {}".format(min_key)
+
+# Now we want to reconstruct the tasks to produce min_key
+print min_key[0]
 
 # triangle.plot_constructions()
