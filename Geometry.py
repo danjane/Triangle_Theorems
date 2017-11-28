@@ -51,6 +51,14 @@ def angle_from_two_lines((l1, l2)):
     return a, a.theta
 
 
+def bisect_angle((angle)):
+    if type(angle) is tuple:
+        angle = angle[0]
+    l = Line((bisect_angle, (angle.name,)),
+             angle.x, angle.y, angle.alpha + angle.theta/2., set([angle.point]))
+    return l, 0
+
+
 class GeometricCollection(object):
     """Represents a collection of geometric objects."""
 
@@ -107,14 +115,14 @@ class GeometricCollection(object):
         self.add_obj(a)
         self.data[a.name] = angle
 
+    def one_angle(self, angle):
+        a, distance = bisect_angle(angle)
+        self.add_obj(a)
+
     def trisect_angle(self, angle):
         p = angle.point
         self.line(p.x, p.y, angle.alpha + angle.theta/3., [p])
         self.line(p.x, p.y, angle.alpha + angle.theta*2./3., [p])
-
-    def bisect_angle(self, angle):
-        self.line((angle.name,),
-                  angle.x, angle.y, angle.alpha + angle.theta/2., set([self.objects[angle.point]]))
 
     def do_all_tasks(self):
         current_tasks = self.tasks
@@ -154,7 +162,7 @@ class GeometricCollection(object):
         task = None
         if isinstance(obj1, Angle):
             # self.trisect_angle(obj1)
-            self.bisect_angle(obj1)
+            self.one_angle(obj1)
             task = (obj1.name,)
         return task
 
@@ -181,6 +189,50 @@ class GeometricCollection(object):
 
         pylab.xlim(-1., 2.)
         pylab.ylim(-1., 2.)
+        pylab.show()
+        pylab.axis('scaled')
+
+
+class RandomTriangle(GeometricCollection):
+
+    def __init__(self):
+        """Initializes the data."""
+        self.objects = {}
+        self.data = {}
+
+    def make_random_triangle(self):
+        points = [('B', 0.5, 0.), ('A', -0.5, 0.)]
+        self.point('C', np.random.normal()/4, np.abs(np.random.normal()))
+        while points:
+            v = points.pop()
+            self.point(v[0], v[1], v[2])
+
+    def add_obj(self, *args):
+        new_obj = args[0]
+        self.objects[new_obj.name] = new_obj
+        if len(args) > 1:
+            data = args[1]
+            self.data[new_obj.name] = data
+
+    def construct_point(self, name):
+        if name in self.objects:
+            return self.objects[name]
+        else:
+            func = name[0]
+            print "Fn {}".format(func)
+            print "Resolving {}".format(name[1])
+            points = tuple(self.construct_point(point) for point in name[1])
+            new_obj, data = func(points)
+            self.add_obj(new_obj, data)
+            return new_obj
+
+    def plot_constructions(self):
+
+        for name, obj in self.objects.iteritems():
+            obj.plot()
+
+        pylab.xlim(-1., 1.)
+        pylab.ylim(-1., self.objects['C'].y*2)
         pylab.show()
         pylab.axis('scaled')
 
@@ -245,7 +297,7 @@ class Angle(Geometric):
         self.alpha = alpha % (2*np.pi)
         self.x = point.x
         self.y = point.y
-        self.point = point.number
+        self.point = point
 
     def plot(self):
         xs = [self.alpha + self.theta*x/99. for x in range(100)]
@@ -258,12 +310,12 @@ triangle = GeometricCollection()
 triangle.make_triangle()
 for i in range(5):
     triangle.do_all_tasks()
-    triangle.plot_constructions()
+    # triangle.plot_constructions()
 
-triangle.show_data()
-print "There are {:d} geometric objects".format(len(triangle.objects))
-print "There were {:d} tasks performed:".format(len(triangle.tasks_done))
-print triangle.tasks_done
+# triangle.show_data()
+# print "There are {:d} geometric objects".format(len(triangle.objects))
+# print "There were {:d} tasks performed:".format(len(triangle.tasks_done))
+# print triangle.tasks_done
 
 min_dist = np.Inf
 for k, v in triangle.data.iteritems():
@@ -274,7 +326,9 @@ for k, v in triangle.data.iteritems():
 print "\nClosest points at a distance of {:g}".format(min_dist)
 print "Occurs for construction {}".format(min_key)
 
-# Now we want to reconstruct the tasks to produce min_key
-print min_key[0]
+random_triangle = RandomTriangle()
+random_triangle.make_random_triangle()
+random_triangle.construct_point(min_key)
 
+random_triangle.plot_constructions()
 # triangle.plot_constructions()
