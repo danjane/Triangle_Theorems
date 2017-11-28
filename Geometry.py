@@ -59,7 +59,7 @@ class GeometricCollection(object):
         self.population = 0
         self.objects = []
         self.data = {}
-        self.tasks = []  # potential parents
+        self.tasks = []
         self.tasks_done = []
 
     def point(self, *arg, **kw):
@@ -75,11 +75,6 @@ class GeometricCollection(object):
     def angle(self, *arg, **kw):
         x = Angle(*arg, **kw)
         x = self.add_obj(x)
-        # self.data[x.number] = np.rad2deg(x.theta)
-        # Also add complement angle
-        # x = Angle(x.theta + x.alpha - np.pi, x.alpha, x.point) #hmmm... clearly needs a think
-        # self.add_obj(x)
-        # self.data.append(x.theta)
         return x
 
     def add_obj(self, new_obj):
@@ -170,11 +165,6 @@ class GeometricCollection(object):
             print("{}\n".format(task.text))
 
     def make_triangle(self):
-        # points = {'A': (0., 0.), 'B': (1., 0.), 'C': (1., 1.)}
-        # for k, v in points.iteritems():
-        #     p = self.point(v[0], v[1])
-        #     p.name = k
-
         points = [('C', 1., 1.), ('B', 1., 0.), ('A', 0., 0.)]
         while points:
             v = points.pop()
@@ -189,10 +179,6 @@ class GeometricCollection(object):
         for obj in reversed(self.objects):
             obj.plot()
 
-        # pylab.title('Probability distribution of anharmonic oscillator with beta=' + str(beta))
-        # pylab.xlabel('position')
-        # pylab.ylabel('probability')
-        # pylab.legend(['matrix squaring', 'path sampled'])
         pylab.xlim(-1., 2.)
         pylab.ylim(-1., 2.)
         pylab.show()
@@ -205,7 +191,6 @@ class Geometric(object):
     def __init__(self, name):
         """Initializes the data."""
         self.name = name
-        self.parents = []
         self.number = -1
         print("(Initializing {})".format(self.name))
 
@@ -261,7 +246,6 @@ class Angle(Geometric):
         self.x = point.x
         self.y = point.y
         self.point = point.number
-        self.parents = [line1.number, line2.number]
 
     def plot(self):
         xs = [self.alpha + self.theta*x/99. for x in range(100)]
