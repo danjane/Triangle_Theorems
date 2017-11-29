@@ -219,8 +219,6 @@ class RandomTriangle(GeometricCollection):
             return self.objects[name]
         else:
             func = name[0]
-            print "Fn {}".format(func)
-            print "Resolving {}".format(name[1])
             points = tuple(self.construct_point(point) for point in name[1])
             new_obj, data = func(points)
             self.add_obj(new_obj, data)
@@ -244,7 +242,6 @@ class Geometric(object):
         """Initializes the data."""
         self.name = name
         self.number = -1
-        print("(Initializing {})".format(self.name))
 
     def plot(self):
             pass
@@ -259,9 +256,7 @@ class Point(Geometric):
         self.y = y
         if lines is None:
             lines = []
-        # TODO remove pointers
         self.lines = [l.number for l in lines]
-        print("Point x:{}, y:{}:".format(x, y))
 
     def plot(self):
         pylab.plot(self.x, self.y, 'ro')
@@ -306,29 +301,4 @@ class Angle(Geometric):
             [self.y + 0.1 * np.sin(x) for x in xs],
             linewidth=.5, color='c')
 
-triangle = GeometricCollection()
-triangle.make_triangle()
-for i in range(5):
-    triangle.do_all_tasks()
-    # triangle.plot_constructions()
 
-# triangle.show_data()
-# print "There are {:d} geometric objects".format(len(triangle.objects))
-# print "There were {:d} tasks performed:".format(len(triangle.tasks_done))
-# print triangle.tasks_done
-
-min_dist = np.Inf
-for k, v in triangle.data.iteritems():
-    if v < min_dist:
-        min_dist = v
-        min_key = k
-
-print "\nClosest points at a distance of {:g}".format(min_dist)
-print "Occurs for construction {}".format(min_key)
-
-random_triangle = RandomTriangle()
-random_triangle.make_random_triangle()
-random_triangle.construct_point(min_key)
-
-random_triangle.plot_constructions()
-# triangle.plot_constructions()
