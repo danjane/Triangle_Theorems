@@ -17,7 +17,7 @@ def intersect_lines((l1, l2)):
     p = l1.points.intersection(l2.points)
 
     if p:
-        return 0, 0
+        return 0, np.nan
 
     else:
 
@@ -41,7 +41,7 @@ def intersect_lines((l1, l2)):
         l1.points.add(p)
         l2.points.add(p)
 
-        return p, 0
+        return p, np.nan
 
 
 def angle_from_two_lines((l1, l2)):
@@ -56,7 +56,7 @@ def bisect_angle((angle)):
         angle = angle[0]
     l = Line((bisect_angle, (angle.name,)),
              angle.x, angle.y, angle.alpha + angle.theta/2., set([angle.point]))
-    return l, 0
+    return l, np.nan
 
 
 class GeometricCollection(object):
@@ -199,6 +199,7 @@ class RandomTriangle(GeometricCollection):
         """Initializes the data."""
         self.objects = {}
         self.data = {}
+        self.make_random_triangle()
 
     def make_random_triangle(self):
         points = [('B', 0.5, 0.), ('A', -0.5, 0.)]
@@ -212,7 +213,8 @@ class RandomTriangle(GeometricCollection):
         self.objects[new_obj.name] = new_obj
         if len(args) > 1:
             data = args[1]
-            self.data[new_obj.name] = data
+            if not(np.isnan(args[1])):
+                self.data[new_obj.name] = data
 
     def construct_point(self, name):
         if name in self.objects:
