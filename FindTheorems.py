@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import cvxpy as cvx
 import pylab
+import scipy.linalg.interpolative as sli
 
 df = pd.DataFrame.from_csv('test.csv', index_col=None, sep=',')
 (nObs, nVar) = df.shape
@@ -39,6 +40,11 @@ solutions = solutions[:, idx]
 pylab.pcolor(solutions, vmin=np.nanmin(solutions), vmax=np.nanmax(solutions))
 pylab.colorbar()
 pylab.show()
+
+k, idx, proj = sli.interp_decomp(solutions, 1e-6)
+solutions = sli.reconstruct_skel_matrix(solutions, k, idx)
+solutions[abs(solutions)<1e-6] = 0.
+solutions[abs(solutions-1)<1e-6] = 1.
 
 print solutions
 
