@@ -173,10 +173,9 @@ class GeometricCollection(object):
             print("{}\n".format(task.text))
 
     def make_triangle(self):
-        points = [('C', 1., 1.), ('B', 1., 0.), ('A', 0., 0.)]
-        while points:
-            v = points.pop()
-            self.point(v[0], v[1], v[2])
+        self.point('A', 0., 0.)
+        self.point('B', 1., 0.)
+        self.point('C', 1., 1.)
 
     def show_data(self):
         """Prints the current population."""
@@ -202,11 +201,9 @@ class RandomTriangle(GeometricCollection):
         self.make_random_triangle()
 
     def make_random_triangle(self):
-        points = [('B', 0.5, 0.), ('A', -0.5, 0.)]
+        self.point('A', -0.5, 0.)
+        self.point('B', 0.5, 0.)
         self.point('C', np.random.normal()/4, np.abs(np.random.normal()))
-        while points:
-            v = points.pop()
-            self.point(v[0], v[1], v[2])
 
     def add_obj(self, *args):
         new_obj = args[0]

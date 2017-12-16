@@ -18,8 +18,8 @@ for i in range(nVar):
     A = M[:, idx]
 
     x = cvx.Variable(nVar)
-    constraints = [A * x + c <= 1e-4]
-    obj = cvx.Minimize(cvx.norm(x, 1))
+    constraints = [A * x + c <= 1e-7, A * x + c >= -1e-7]
+    obj = cvx.Minimize(cvx.norm(x[:-1], 1))
     prob = cvx.Problem(obj, constraints)
     prob.solve()  # Returns the optimal value.
     if prob.status == cvx.OPTIMAL:
@@ -28,11 +28,17 @@ for i in range(nVar):
         solutions[:, i] = np.NaN
 
 chk = np.dot(M, solutions)
+
+# print solutions
+# pylab.plot(chk)
+# pylab.show()
+
 idx = np.amax(abs(chk), axis=0) < 1e-6
 solutions = solutions[:, idx]
 
+pylab.pcolor(solutions, vmin=np.nanmin(solutions), vmax=np.nanmax(solutions))
+pylab.colorbar()
+pylab.show()
+
 print solutions
 
-chk = np.dot(M, solutions)
-pylab.plot(chk)
-pylab.show()
