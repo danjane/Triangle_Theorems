@@ -44,5 +44,6 @@ print "\n1000 constructions complete, avg time {} secs.".format((end - start)/10
 # df[df==0] = np.nan # necessary?
 # df = df.dropna(axis=1)
 
-df.to_csv('test.csv', na_rep='NaN', index=False)
-print "Data written to test.csv"
+# df.to_csv('test.csv', na_rep='NaN', index=False)
+df.to_pickle('test.pickle')
+print "Data written to 'test.pickle'"
