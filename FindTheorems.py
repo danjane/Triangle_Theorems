@@ -2,9 +2,7 @@ import numpy as np
 import pandas as pd
 import cvxpy as cvx
 # import pylab
-import scipy.linalg.interpolative as sli
 import Geometry
-
 
 def solutions_from_data(df):
     (nObs, nVar) = df.shape
@@ -15,13 +13,15 @@ def solutions_from_data(df):
 
     solutions = []
 
-    # TODO: don't need to check a regressor once it has a non-zero value in some optimal solution
-    for i in range(nVar):
+    regressors = np.full((nVar, 1), True, dtype=bool)
+    while any(regressors):
+        i = np.where(regressors)[0][0]
+        regressors[i] = False
         print "Finding relations involving: {:s}".format(geometric_objects[i])
 
         idx = list(range(nVar + 1))
         del idx[i]
-        solution = np.ones(nVar + 1)
+        sol = np.ones(nVar + 1)
 
         c = M[:, i]
         A = M[:, idx]
@@ -32,19 +32,15 @@ def solutions_from_data(df):
         prob = cvx.Problem(obj, constraints)
         prob.solve()  # Returns the optimal value.
         if prob.status == cvx.OPTIMAL:
-            solution[idx] = x.value.flatten()
-            solutions.append(solution)
+            sol[idx] = x.value.flatten()
+            sol[abs(sol) < 1e-6] = 0.
+            sol[abs(sol - 1) < 1e-6] = 1.
+
+            regressors[abs(sol[:-1]) > 1e-6] = False
+
+            solutions.append(sol)
 
     solutions = np.stack(solutions, axis=1)
-
-    # pylab.pcolor(solutions, vmin=np.nanmin(solutions), vmax=np.nanmax(solutions))
-    # pylab.colorbar()
-    # pylab.show()
-
-    k, idx, proj = sli.interp_decomp(solutions, 1e-6)
-    solutions = sli.reconstruct_skel_matrix(solutions, k, idx)
-    solutions[abs(solutions) < 1e-6] = 0.
-    solutions[abs(solutions - 1) < 1e-6] = 1.
 
     return solutions
 
