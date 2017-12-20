@@ -13,7 +13,7 @@ def solutions_from_data(df):
     M = np.ones([nObs, nVar + 1])
     M[:, :-1] = df.values
 
-    solutions = np.ones([nVar + 1, nVar])
+    solutions = []
 
     # TODO: don't need to check a regressor once it has a non-zero value in some optimal solution
     for i in range(nVar):
@@ -21,6 +21,8 @@ def solutions_from_data(df):
 
         idx = list(range(nVar + 1))
         del idx[i]
+        solution = np.ones(nVar + 1)
+
         c = M[:, i]
         A = M[:, idx]
 
@@ -30,18 +32,10 @@ def solutions_from_data(df):
         prob = cvx.Problem(obj, constraints)
         prob.solve()  # Returns the optimal value.
         if prob.status == cvx.OPTIMAL:
-            solutions[idx, i] = x.value.flatten()
-        else:
-            solutions[:, i] = np.NaN
+            solution[idx] = x.value.flatten()
+            solutions.append(solution)
 
-    chk = np.dot(M, solutions)
-
-    # print solutions
-    # pylab.plot(chk)
-    # pylab.show()
-
-    idx = np.amax(abs(chk), axis=0) < 1e-6
-    solutions = solutions[:, idx]
+    solutions = np.stack(solutions, axis=1)
 
     # pylab.pcolor(solutions, vmin=np.nanmin(solutions), vmax=np.nanmax(solutions))
     # pylab.colorbar()
