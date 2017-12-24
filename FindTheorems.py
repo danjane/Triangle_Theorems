@@ -13,7 +13,7 @@ def solutions_from_data(df):
 
     solutions = []
 
-    regressors = np.full((nVar, 1), True, dtype=bool)
+    regressors = [True] * nVar
     while any(regressors):
         i = np.where(regressors)[0][0]
         regressors[i] = False
@@ -36,7 +36,7 @@ def solutions_from_data(df):
             sol[abs(sol) < 1e-6] = 0.
             sol[abs(sol - 1) < 1e-6] = 1.
 
-            regressors[abs(sol[:-1]) > 1e-6] = False
+            regressors = [r & (s == 0.) for (r, s) in zip(regressors, sol[:-1])]
 
             solutions.append(sol)
 
