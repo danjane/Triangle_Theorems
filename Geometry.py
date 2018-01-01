@@ -164,12 +164,6 @@ class GeometricCollection(object):
             task = (obj1.name,)
         return task
 
-    def what_tasks(self):
-        """Prints the current population."""
-        print("We have the following {:d} tasks outstanding:\n".format(len(self.tasks)))
-        for task in self.tasks:
-            print("{}\n".format(task.text))
-
     def make_triangle(self):
         self.point('A', 0., 0.)
         self.point('B', 1., 0.)
@@ -230,6 +224,32 @@ class RandomTriangle(GeometricCollection):
         pylab.ylim(-1., self.objects['C'].y*2)
         pylab.show()
         pylab.axis('scaled')
+
+
+class RandomTriangleWithTasks(RandomTriangle):
+
+    def __init__(self):
+        self.tasks = []
+        self.population = 0
+        self.objectNumbers = {}
+        RandomTriangle.__init__(self)
+
+    def add_obj(self, *args):
+        RandomTriangle.add_obj(self, *args)
+        new_obj = args[0]
+        self.objectNumbers[new_obj.name] = self.population
+        self.population += 1
+
+    def construct_point(self, name):
+        if name in self.objects:
+            return self.objects[name]
+        else:
+            func = name[0]
+            points = tuple(self.construct_point(point) for point in name[1])
+            new_obj, data = func(points)
+            self.add_obj(new_obj, data)
+            self.tasks.append(tuple(self.objectNumbers[p.name] for p in points))
+            return new_obj
 
 
 class Geometric(object):
