@@ -7,7 +7,7 @@ MAX_OBJECTS = 999
 def connect_points((p, q)):
     dy = p.y - q.y
     dx = p.x - q.x
-    l = Line((connect_points, (p.name, q.name)), p.x, p.y, np.arctan2(dy, dx), set([p, q]))
+    l = Line((connect_points, (p.name, q.name)), p.x, p.y, np.arctan2(dy, dx), {p, q})
     p.lines.append(l)
     q.lines.append(l)
     return l, np.sqrt(dx**2 + dy**2)
@@ -27,6 +27,7 @@ def intersect_lines((l1, l2)):
                 print("Lines are equal!! ({} and {})".format(id(l1), id(l2)))
             else:
                 print("Lines are parallel!! ({} and {})".format(id(l1), id(l2)))
+            return 0, np.nan
 
         c1 = np.cos(l1.theta)
         c2 = np.cos(l2.theta)
@@ -55,7 +56,7 @@ def bisect_angle((angle)):
     if type(angle) is tuple:
         angle = angle[0]
     l = Line((bisect_angle, (angle.name,)),
-             angle.x, angle.y, angle.alpha + angle.theta/2., set([angle.point]))
+             angle.x, angle.y, angle.alpha + angle.theta/2., {angle.point})
     return l, np.nan
 
 
@@ -119,22 +120,18 @@ class GeometricCollection(object):
         a, distance = bisect_angle(angle)
         self.add_obj(a)
 
-    def trisect_angle(self, angle):
-        p = angle.point
-        self.line(p.x, p.y, angle.alpha + angle.theta/3., [p])
-        self.line(p.x, p.y, angle.alpha + angle.theta*2./3., [p])
-
     def do_all_tasks(self):
         current_tasks = self.tasks
         self.tasks = []
         for task in current_tasks:
             if len(self.objects) > MAX_OBJECTS:
-                break
+                return False
             task = self.do_task(task)
             if task is not None:
                 self.tasks_done.append(task)
 
         print "There are {:d} tasks outstanding".format(len(self.tasks))
+        return True
 
     def do_task(self, parents):
         if len(parents) == 1:
@@ -143,6 +140,7 @@ class GeometricCollection(object):
             task = self.do_task2(parents)
         else:
             print("something gone wrong!!\n")
+            task = None
         return task
 
     def do_task2(self, parents):

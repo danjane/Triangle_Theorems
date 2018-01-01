@@ -40,8 +40,6 @@ def solutions_from_data(df):
 
             solutions.append(sol)
 
-    solutions = np.stack(solutions, axis=1)
-
     return solutions
 
 
@@ -66,7 +64,8 @@ print "/nLoading: 'test.pickle'\n"
 df = pd.read_pickle('test.pickle')
 
 solutions = solutions_from_data(df)
-print solutions
+print np.stack(solutions, axis=1)
+print '\n'
 
-for i in range(solutions.shape[1]):
-    determine_type_of_relation(solutions[:, i], df.columns)
+for s in solutions:
+    determine_type_of_relation(s, df.columns)
