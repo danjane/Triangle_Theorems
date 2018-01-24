@@ -1,0 +1,18 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb, amsfonts, amsthm, url, graphicx}
+
+\begin{document}
+
+\textbf{How should we find patterns in the data?}
+
+\
+
+Assume data from a triangle stored in a row of matrix $M$ and that $M$ is extended with a dummy column of ones. Then we are looking for the `simplest' solutions to 
+\[ Mx = 0. \]
+Simplest translates as the sparse non-zero solutions, i.e.
+\[  \min \|x\|_1, \qquad Mx = 0, \quad \|x\|_2 = 1. \]
+To remove the second constraint and find all relations, we can loop over the coefficients of $x$ setting each to one. For example with $x_1 = 1$ and writing $M = (c\, | A)$,
+\[  \min \|x\|_1, \qquad Ax+c = 0. \]
+
+\end{document}
+\end

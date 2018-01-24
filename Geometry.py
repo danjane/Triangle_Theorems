@@ -1,5 +1,6 @@
 import numpy as np
 import pylab
+import random
 
 MAX_OBJECTS = 999
 
@@ -47,9 +48,12 @@ def intersect_lines((l1, l2)):
 
 def angle_from_two_lines((l1, l2)):
     p = l1.points.intersection(l2.points)
-    p = p.pop()
-    a = Angle((angle_from_two_lines, (l1.name, l2.name)), l1, l2, p)
-    return a, a.theta
+    if p:
+        p = p.pop()
+        a = Angle((angle_from_two_lines, (l1.name, l2.name)), l1, l2, p)
+        return a, a.theta
+    else:
+        return 0, np.nan
 
 
 def bisect_angle((angle)):
@@ -113,8 +117,9 @@ class GeometricCollection(object):
         if p:
             self.add_obj(p)
         a, angle = angle_from_two_lines((l1, l2))
-        self.add_obj(a)
-        self.data[a.name] = angle
+        if a:
+            self.add_obj(a)
+            self.data[a.name] = angle
 
     def one_angle(self, angle):
         a, distance = bisect_angle(angle)
@@ -163,6 +168,10 @@ class GeometricCollection(object):
             self.one_angle(obj1)
             task = (obj1.name,)
         return task
+
+    def forget_some_tasks(self, k):
+        if len(self.tasks) > k:
+            self.tasks = random.sample(self.tasks, k)
 
     def make_triangle(self):
         self.point('A', 0., 0.)
