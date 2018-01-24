@@ -4,6 +4,7 @@ import cvxpy as cvx
 # import pylab
 import Geometry
 
+
 def solutions_from_data(df):
     (nObs, nVar) = df.shape
     geometric_objects = df.columns
@@ -58,14 +59,14 @@ def determine_type_of_relation(solution, constructs):
     else:
         print "unknown relation!!"
 
+if __name__ == "__main__":
+    print "/nLoading: 'test.pickle'\n"
+    # df = pd.DataFrame.from_csv('test.csv', index_col=None, sep=',')
+    df = pd.read_pickle('test.pickle')
 
-print "/nLoading: 'test.pickle'\n"
-# df = pd.DataFrame.from_csv('test.csv', index_col=None, sep=',')
-df = pd.read_pickle('test.pickle')
+    solutions = solutions_from_data(df)
+    print np.stack(solutions, axis=1)
+    print '\n'
 
-solutions = solutions_from_data(df)
-print np.stack(solutions, axis=1)
-print '\n'
-
-for s in solutions:
-    determine_type_of_relation(s, df.columns)
+    for s in solutions:
+        determine_type_of_relation(s, df.columns)
